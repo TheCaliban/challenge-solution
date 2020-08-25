@@ -17,3 +17,11 @@ html, body {
 .content {
     padding: 15px;
 }
+
+.table-tax-pourcent {
+    font-weight: bold;
+}
+
+#table-step-tax td {
+    border: 1px solid black;
+}

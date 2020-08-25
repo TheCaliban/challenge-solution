@@ -1,7 +1,7 @@
 $('#tax-input-income, #tax-input-status, #tax-input-child').on('input', function () {
     let taxStep = {
         45: {
-            max: null,
+            max: Infinity,
             min: 157807
         },
         41: {
@@ -17,33 +17,58 @@ $('#tax-input-income, #tax-input-status, #tax-input-child').on('input', function
             min: 10065
         }
     }
+
+    let taxDuByStep = {
+        45: 0,
+        41: 0,
+        30: 0,
+        11: 0,
+        0: 0
+    }
+
     let status = (!$('#tax-input-status').prop('checked')) ? 1 : 2;
     let nbChild = ($('#tax-input-child').val() != '') ? parseInt($('#tax-input-child').val()) : 0;
-
+    if (nbChild > 2) {
+        nbChild = 1 + (nbChild - 2)
+    }
     let quotientFam = status + nbChild;
 
     let brutIncome = parseInt($('#tax-input-income').val());
     let qfBrutIncome = brutIncome / quotientFam;
     let netIncome = 0;
     let incrementTax = 0;
+    let duEachStep = 0;
 
 
     $.each(taxStep, (pourcent, limit) => {
         if (qfBrutIncome > limit.min) {
             if (qfBrutIncome > limit.max) {
-                incrementTax += (limit.max - limit.min) * (pourcent / 100);
+                duEachStep = (limit.max - limit.min) * (pourcent / 100);
             }
             else {
-                incrementTax += (qfBrutIncome - limit.min) * (pourcent / 100);
+                duEachStep = (qfBrutIncome - limit.min) * (pourcent / 100);
             }
+            taxDuByStep[pourcent] = duEachStep;
+            incrementTax += duEachStep;
+        }
+    });
+
+    let $table = $('#table-step-tax tbody');
+    $table.html('');
+
+    $.each(taxDuByStep, (pourcent, amount) => {
+
+        if (amount > 0) {
+            $table.append(`<tr>
+                            <td class="table-tax-pourcent">${pourcent}</td>
+                            <td class="table-tax-amount">${amount}</td>
+                            </tr>`);
         }
     });
 
 
-    netIncome = qfBrutIncome - incrementTax;
+    netIncome = brutIncome - incrementTax;
 
     $('#tax-span-amount').html(incrementTax);
     $('#tax-span-rest').html(netIncome);
-
-
 });
